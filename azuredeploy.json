@@ -66,7 +66,7 @@
         }
     },
     "variables": {
-        "templateBaseUrl": "https://raw.githubusercontent.com/SunilChopra123/citus/master/",
+        "templateBaseUrl": "https://raw.githubusercontent.com/naveencherukuru/PostgreSQLVMSS/master/",
         "sharedTemplateUrl": "[concat(variables('templateBaseUrl'), 'shared-resources.json')]",
         "tshirtSizeSmall": {
             "vmSize": "Standard_A1",
@@ -92,7 +92,7 @@
         "osSettings": {
             "scripts": [
                 "[concat(variables('templateBaseUrl'), 'install_postgresql.sh')]",
-                "https://raw.githubusercontent.com/SunilChopra123/citus/master/ubuntu/vm-disk-utils-0.1.sh"
+                "https://raw.githubusercontent.com/naveencherukuru/PostgreSQLVMSS/master/install_postgresql.sh"
             ],
             "imageReference": {
                 "publisher": "Canonical",
