@@ -1,2 +1,2 @@
 # PostgreSQLVMSS
-JSON Files to ubuntu machines as scaleset
+Azure VM scale set for Postgresql
