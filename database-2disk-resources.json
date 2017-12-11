@@ -161,60 +161,6 @@
                     "commandToExecute": "[concat('bash install_postgresql.sh -m ', parameters('masterIpAddress'), ' -s ', parameters('subnet').prefix, ' -t ', parameters('dbType') , ' -p ', parameters('replicatorPassword') )]"
                 }
             }
-        },
-        {
-            "type": "Microsoft.Compute/virtualMachineScaleSets",
-            "name": "[variables('namingInfix')]",
-            "location": "[resourceGroup().location]",
-            "condition": "[contains(parameters('dbType'), 'SLAVE')]",
-            "apiVersion": "2017-03-30",
-            "dependsOn": [
-                "[concat('Microsoft.Network/virtualNetworks/', parameters('networkSettings').vnetName)]"
-            ],
-            "sku": {
-                "name": "[parameters('machineSettings').vmSize]", 
-                "tier": "Standard",
-                "capacity": "[variables('vmCount')]"
-            },
-            "properties": {
-                "overprovision": "true",
-                "upgradePolicy": {
-                    "mode": "Manual"
-                },
-                "virtualMachineProfile": {
-                    "storageProfile": {
-                        "osDisk": {
-                            "createOption": "FromImage"
-                        },
-                        "imageReference": "[parameters('osSettings').imageReference]"
-                    },
-                    "osProfile": {
-                        "computerNamePrefix": "[variables('namingInfix')]",
-                        "adminUsername": "[variables('adminUsername')]",
-                        "adminPassword": "[parameters('adminPassword')]"
-                    },
-                    "networkProfile": {
-                        "networkInterfaceConfigurations": [
-                            {
-                                "name": "[variables('slavenicName')]",
-                                "properties": {
-                                    "primary": "true",
-                                    "ipConfigurations": [
-                                        {
-                                            "name": "[variables('ipConfigName')]",
-                                            "properties": {
-                                                "subnet": {
-                                                    "id": "[concat('/subscriptions/', subscription().subscriptionId,'/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'), '/subnets/', variables('subnetName'))]"
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        ]
-                    }
-                }
-            }
         }
       ],
       "outputs": {
