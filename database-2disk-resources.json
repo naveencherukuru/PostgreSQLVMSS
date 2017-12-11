@@ -49,10 +49,10 @@
     },
     "resources": [
         {
+            "condition": "[equals(parameters('dbType'), 'Master')]",
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(variables('nicName'), copyindex())]",
-            "condition": "[contains(parameters('dbType'), 'Master')]",
             "location": "[resourceGroup().location]",
             "copy": {
                 "name": "nicCopyLoop",
@@ -73,10 +73,10 @@
             }
         },
         {
+            "condition": "[equals(parameters('dbType'), 'Master')]",
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Compute/virtualMachines",
             "name": "[concat(variables('vmName'), copyindex())]",
-            "condition": "[contains(parameters('dbType'), 'Master')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'), copyindex())]"
@@ -137,10 +137,10 @@
             }
         },
         {
+            "condition": "[equals(parameters('dbType'), 'Master')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('vmName'), copyindex(), '/install_postgresql')]",
             "apiVersion": "2015-05-01-preview",
-            "condition": "[contains(parameters('dbType'), 'Master')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'), copyindex())]"
@@ -159,6 +159,60 @@
                 },
                 "protectedSettings": {
                     "commandToExecute": "[concat('bash install_postgresql.sh -m ', parameters('masterIpAddress'), ' -s ', parameters('subnet').prefix, ' -t ', parameters('dbType') , ' -p ', parameters('replicatorPassword') )]"
+                }
+            }
+        },
+        {
+            "condition": "[equals(parameters('dbType'), 'SLAVE')]",
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "name": "[variables('namingInfix')]",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2017-03-30",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('networkSettings').vnetName)]"
+            ],
+            "sku": {
+                "name": "[parameters('machineSettings').vmSize]",
+                "tier": "Standard",
+                "capacity": "[variables('vmCount')]"
+            },
+            "properties": {
+                "overprovision": "true",
+                "upgradePolicy": {
+                    "mode": "Manual"
+                },
+                "virtualMachineProfile": {
+                    "storageProfile": {
+                        "osDisk": {
+                            "createOption": "FromImage"
+                        },
+                        "imageReference": "[parameters('osSettings').imageReference]"
+                    },
+                    "osProfile": {
+                        "computerNamePrefix": "[variables('namingInfix')]",
+                        "adminUsername": "[variables('adminUsername')]",
+                        "adminPassword": "[parameters('adminPassword')]"
+                    },
+                    "networkProfile": {
+                        "networkInterfaceConfigurations": [
+                            {
+                                "name": "[variables('slavenicName')]",
+                                "properties": {
+                                    "primary": "true",
+                                    "ipConfigurations": [
+                                        {
+                                            "name": "[variables('ipConfigName')]",
+                                            "properties": {
+                                                "subnet": {
+                                                    "id": "[concat('/subscriptions/', subscription().subscriptionId,'/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'), '/subnets/', variables('subnetName'))]"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
                 }
             }
         }
