@@ -160,7 +160,6 @@
             }
         },
         {
-            "condition": "[equals(parameters('dbType'), 'SLAVE')]",
             "type": "Microsoft.Compute/virtualMachineScaleSets",
             "name": "[variables('namingInfix')]",
             "location": "[resourceGroup().location]",
