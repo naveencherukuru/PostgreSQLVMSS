@@ -49,7 +49,6 @@
     },
     "resources": [
         {
-            "condition": "[equals(parameters('dbType'), 'Master')]",
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(variables('nicName'), copyindex())]",
@@ -73,7 +72,6 @@
             }
         },
         {
-            "condition": "[equals(parameters('dbType'), 'Master')]",
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Compute/virtualMachines",
             "name": "[concat(variables('vmName'), copyindex())]",
@@ -137,7 +135,6 @@
             }
         },
         {
-            "condition": "[equals(parameters('dbType'), 'Master')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('vmName'), copyindex(), '/install_postgresql')]",
             "apiVersion": "2015-05-01-preview",
