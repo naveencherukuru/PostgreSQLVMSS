@@ -28,6 +28,9 @@
         },
         "dbType": {
             "type": "string"
+        },
+        "networkSettings": {
+            "type": "object"
         }
     },
     "variables": {
@@ -38,12 +41,18 @@
         "nicName": "[concat(variables('namespace'), 'nic')]",
         "adminUsername": "[parameters('commonSettings').adminUsername]",
         "vmCount": "[parameters('machineSettings').vmCount]",
+        "namingInfix": "[toLower(substring(concat('SlaveVMss', uniqueString(resourceGroup().id)), 0, 9))]",
+        "slavenicName": "[concat(variables('namingInfix'), 'nic')]",
+        "ipConfigName": "[concat(variables('namingInfix'), 'ipconfig')]",
+        "virtualNetworkName": "[parameters('networkSettings').vnetName]",
+        "subnetName": "[parameters('networkSettings').subnets.dmz.name]"
     },
     "resources": [
         {
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(variables('nicName'), copyindex())]",
+            "condition": "[contains(parameters('dbType'), 'Master')]",
             "location": "[resourceGroup().location]",
             "copy": {
                 "name": "nicCopyLoop",
@@ -67,6 +76,7 @@
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Compute/virtualMachines",
             "name": "[concat(variables('vmName'), copyindex())]",
+            "condition": "[contains(parameters('dbType'), 'Master')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'), copyindex())]"
@@ -130,6 +140,7 @@
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('vmName'), copyindex(), '/install_postgresql')]",
             "apiVersion": "2015-05-01-preview",
+            "condition": "[contains(parameters('dbType'), 'Master')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'), copyindex())]"
@@ -153,15 +164,13 @@
         },
         {
             "type": "Microsoft.Compute/virtualMachineScaleSets",
-            "name": "slaveScaleSet",
+            "name": "[variables('namingInfix')]",
             "location": "[resourceGroup().location]",
             "condition": "[contains(parameters('dbType'), 'SLAVE')]",
             "apiVersion": "2017-03-30",
             "dependsOn": [
-                "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]",
-        	"[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
-	    ],
-	    
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('networkSettings').vnetName)]"
+            ],
             "sku": {
                 "name": "[parameters('machineSettings').vmSize]", 
                 "tier": "Standard",
